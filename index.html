@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İyi ki aşkımsın</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: #000000;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 2s ease;
+        }
+
+        /* Arka plan aydınlanması */
+    #gameContainer.light-level-1 { background: linear-gradient(135deg, #1a1a00, #333300); }
+    #gameContainer.light-level-2 { background: linear-gradient(135deg, #333300, #666600); }
+    #gameContainer.light-level-3 { background: linear-gradient(135deg, #666600, #999933); }
+    #gameContainer.light-level-4 { background: linear-gradient(135deg, #999933, #cccc66); }
+    #gameContainer.light-level-5 { background: linear-gradient(135deg, #cccc66, #fff799); }
+    #gameContainer.light-max { 
+        background: linear-gradient(135deg, #fff799, #fffacd, #ffffe0); 
+        animation: finalGlow 2s ease-in-out;
+    }
+
+        @keyframes finalGlow {
+            0%, 100% { 
+                background: linear-gradient(135deg, #8b7355, #d4af37, #ffd700); 
+            }
+            50% { 
+                background: linear-gradient(135deg, #ffd700, #ffed4e, #fff8dc); 
+            }
+        }
+
+        /* Parçacık container */
+        .particles-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Parçacık stilleri */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, #ffd700, #ffed4e);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat 3s ease-out forwards;
+            box-shadow: 0 0 6px #ffd700;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0px);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.3) translateY(-100px);
+            }
+        }
+
+        /* Büyük parçacıklar (dokunuş için) */
+        .particle.big {
+            width: 8px;
+            height: 8px;
+            animation: particleFloatBig 4s ease-out forwards;
+        }
+
+        @keyframes particleFloatBig {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0px) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5) translateY(-150px) rotate(360deg);
+            }
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .instruction-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.2rem;
+            font-style: italic;
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: fadeInUp 2s ease-in-out 5s forwards;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .main-message {
+            color: #000d57;
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            transform: scale(0.8);
+            text-align: center;
+            line-height: 1.2;
+            margin: 2rem 0;
+        }
+
+        .main-message.show {
+            animation: messageAppear 2s ease-out forwards;
+        }
+
+        @keyframes messageAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .cake-container {
+            opacity: 0;
+            transform: translateY(50px);
+            text-align: center;
+        }
+
+        .cake-container.show {
+            animation: cakeAppear 1.5s ease-out forwards;
+        }
+
+        @keyframes cakeAppear {
+            0% {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .cake {
+            font-size: 8rem;
+            margin: 2rem 0;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            display: block;
+        }
+
+        .cake:hover {
+            transform: scale(1.1);
+        }
+
+        .candles {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 1rem 0;
+            justify-items: center;
+        }
+
+        .candle {
+            font-size: 3rem;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            opacity: 1;
+            position: relative;
+        }
+
+        .candle.blown {
+            opacity: 0.3;
+            transform: scale(0.8);
+        }
+
+        .blow-instruction {
+            color: rgba(0, 0, 0, 0.9);
+            font-size: 1.1rem;
+            font-style: italic;
+            margin-top: 1rem;
+        }
+
+        .final-message {
+            color: #000d57;
+            font-size: 2rem;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            text-align: center;
+            line-height: 1.3;
+            margin: 2rem 0;
+        }
+
+        .final-message.show {
+            animation: 
+            finalAppear 3s ease-out forwards,
+            growFont 1.2s ease-out 6s forwards;
+        }
+
+        @keyframes finalAppear {
+            0% {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        @keyframes growFont {
+            0%   { font-size: 2rem; }   /* başlangıç boyutu */
+            100% { font-size: 4rem; }   /* istediğin hedef boyuta ayarla */
+        }
+
+
+        .smoke {
+            position: absolute;
+            width: 4px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 2px;
+            animation: smokeRise 2s ease-out forwards;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        @keyframes smokeRise {
+            0% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-50px) scale(0.5);
+            }
+        }
+
+        /* Touch feedback */
+        .touch-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgb(255, 247, 205), transparent);
+            pointer-events: none;
+            animation: rippleEffect 1s ease-out forwards;
+        }
+
+        @keyframes rippleEffect {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            100% {
+                width: 300px;
+                height: 300px;
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-message {
+                font-size: 2.2rem;
+            }
+            
+            .final-message {
+                font-size: 1.8rem;
+            }
+            
+            .cake {
+                font-size: 6rem;
+            }
+            
+            .instruction-text {
+                font-size: 1.1rem;
+                bottom: 80px;
+            }
+            
+            .blow-instruction {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div class="particles-container" id="particlesContainer"></div>
+        
+        <div class="content">
+            <div class="instruction-text" id="instructionText">
+                "Işığı çağırmak için telefonunu salla..."
+            </div>
+            <div class="main-message" id="preMessage">
+                Her karanlığın içinde bir ışık vardır 
+            </div>
+            <div class="main-message" id="mainMessage">
+                Ve sen bu ışığın <br>ta kendisisin ☀️
+            </div>
+            
+            <div class="cake-container" id="cakeContainer">
+                <div class="cake" id="cake">🎂</div>
+                <div class="candles" id="candles">
+                    <!-- 20 mum dinamik olarak eklenecek -->
+                </div>
+                <div class="blow-instruction">
+                    "Üflemek için mumlara dokun..."
+                </div>
+            </div>
+            
+            <div class="final-message" id="finalMessage">
+                İyi ki doğdun Sevgilim<br>İyi ki 2 aydır benimlesin <br> Seni Çok Seviyorum💙
+            </div>
+        </div>
+    </div>
+
+    <!-- Müzik dosyaları -->
+    <audio id="melancholyMusic" preload="auto">
+        <source src="sandik.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="birthdayMusic" preload="auto" loop>
+        <source src="hbs.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Global değişkenler
+        let isShakeDetectionActive = false;
+        let lightLevel = 0;
+        let maxLightLevel = 100;
+        let gamePhase = 'intro'; // intro, shake, message, cake, final
+        let shakeThreshold = 15;
+        let candlesBlown = 0;
+        let totalCandles = 20;
+        
+        // Müzik elementleri
+        let melancholyMusic, birthdayMusic;
+        
+        // CSS parçacık oluşturma
+        function createParticles(count, isBig = false) {
+            const container = document.getElementById('particlesContainer');
+            
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = isBig ? 'particle big' : 'particle';
+                
+                // Rastgele pozisyon
+                particle.style.left = Math.random() * window.innerWidth + 'px';
+                particle.style.top = Math.random() * window.innerHeight + 'px';
+                
+                // Rastgele animasyon gecikmesi
+                particle.style.animationDelay = Math.random() * 0.5 + 's';
+                
+                container.appendChild(particle);
+                
+                // Animasyon bitince elementi kaldır
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, isBig ? 4000 : 3000);
+            }
+        }
+        
+        // Arka plan aydınlanma seviyesi
+        function updateBackgroundLight() {
+            const container = document.getElementById('gameContainer');
+            const lightPercent = (lightLevel / maxLightLevel) * 100;
+            
+            // Eski sınıfları temizle
+            container.className = '';
+            
+            if (lightLevel >= maxLightLevel) {
+                container.classList.add('light-max');
+            } else if (lightPercent >= 80) {
+                container.classList.add('light-level-5');
+            } else if (lightPercent >= 60) {
+                container.classList.add('light-level-4');
+            } else if (lightPercent >= 40) {
+                container.classList.add('light-level-3');
+            } else if (lightPercent >= 20) {
+                container.classList.add('light-level-2');
+            } else if (lightPercent > 0) {
+                container.classList.add('light-level-1');
+            }
+        }
+        
+        // Touch ripple efekti
+        function createTouchRipple(x, y) {
+            const ripple = document.createElement('div');
+            ripple.className = 'touch-ripple';
+            ripple.style.left = (x - 150) + 'px';
+            ripple.style.top = (y - 150) + 'px';
+            
+            document.body.appendChild(ripple);
+            
+            setTimeout(() => {
+                if (ripple.parentNode) {
+                    ripple.parentNode.removeChild(ripple);
+                }
+            }, 1000);
+        }
+        
+        // Sallama algılama
+        function startShakeDetection() {
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            enableShakeDetection();
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                enableShakeDetection();
+            }
+        }
+        
+        function enableShakeDetection() {
+            isShakeDetectionActive = true;
+            
+            window.addEventListener('devicemotion', (event) => {
+                if (!isShakeDetectionActive || gamePhase !== 'shake') return;
+                
+                let acceleration = event.accelerationIncludingGravity;
+                let totalAcceleration = Math.abs(acceleration.x) + 
+                                      Math.abs(acceleration.y) + 
+                                      Math.abs(acceleration.z);
+                
+                if (totalAcceleration > shakeThreshold) {
+                    onShake(totalAcceleration);
+                }
+            });
+        }
+        
+        // Sallama olayı
+        function onShake(intensity) {
+            if (gamePhase !== 'shake') return;
+            
+            // Işık seviyesini artır
+            let increment = Math.min(intensity / 5, 10);
+            lightLevel = Math.min(lightLevel + increment, maxLightLevel);
+            
+            // Arka planı güncelle
+            updateBackgroundLight();
+            
+            // Yeni parçacıklar oluştur
+            createParticles(Math.floor(intensity / 3));
+            
+            // Yeterli ışık seviyesine ulaşıldı mı?
+            if (lightLevel >= maxLightLevel) {
+                completeShakePhase();
+            }
+        }
+        
+        // Dokunuş ile direkt geçiş (tek dokunuş)
+        function onTouchSkip(x, y) {
+            if (gamePhase !== 'shake') return;
+            
+            // Ripple efekti
+            createTouchRipple(x, y);
+            
+            // Işık seviyesini maksimuma çıkar
+            lightLevel = maxLightLevel;
+            
+            // Arka planı güncelle
+            updateBackgroundLight();
+            
+            // Bol parçacık oluştur
+            createParticles(50, true);
+            
+            // Direkt tamamlanmış fazına geç
+            completeShakePhase();
+        }
+        
+        // Sallama fazı tamamlandı
+        function completeShakePhase() {
+            gamePhase = 'message';
+            isShakeDetectionActive = false;
+            
+            // Titreşim
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 400]);
+            }
+            
+            // Müziği durdur - COMMENT
+             melancholyMusic.pause();
+            
+            // İnstruction text'i gizle
+            document.getElementById('instructionText').style.display = 'none';
+            
+            // Ana mesajı göster
+            setTimeout(() => {
+                document.getElementById('preMessage').classList.add('show');
+                setTimeout(() => {
+                    document.getElementById('preMessage').style.display = 'none';
+                    document.getElementById('mainMessage').classList.add('show');
+                }, 2500);
+
+
+                
+                // 4 saniye sonra pasta fazına geç
+                setTimeout(() => {
+                    startCakePhase();
+                }, 8000);
+            }, 500);
+        }
+        
+        // Pasta fazını başlat
+        function startCakePhase() {
+            gamePhase = 'cake';
+            
+            // Ana mesajı gizle
+            document.getElementById('mainMessage').style.display = 'none';
+            
+            // Arka planın aydınlık kalmasını sağla
+            const container = document.getElementById('gameContainer');
+            container.className = 'light-max';
+            
+            // Doğum günü müziğini başlat - COMMENT
+             birthdayMusic.currentTime = 0;
+             birthdayMusic.play().catch(console.error);
+            
+            // Mumları oluştur
+            createCandles();
+            
+            // Pasta container'ını göster
+            setTimeout(() => {
+                document.getElementById('cakeContainer').classList.add('show');
+            }, 500);
+        }
+        
+        // Mumları oluştur
+        function createCandles() {
+            const candlesContainer = document.getElementById('candles');
+            candlesContainer.innerHTML = '';
+            
+            for (let i = 0; i < totalCandles; i++) {
+                const candle = document.createElement('div');
+                candle.className = 'candle';
+                candle.textContent = '🕯️';
+                candle.addEventListener('click', () => blowCandle(candle, i));
+                candlesContainer.appendChild(candle);
+            }
+        }
+        
+        // Mum söndürme
+        function blowCandle(candleElement, index) {
+            if (candleElement.classList.contains('blown')) return;
+            
+            candleElement.classList.add('blown');
+            candleElement.textContent = '💨';
+            candlesBlown++;
+            
+            // Duman efekti
+            //createSmoke(candleElement);
+            
+            // Tüm mumlar söndürüldü mü?
+            if (candlesBlown >= totalCandles) {
+                setTimeout(() => {
+                    startFinalPhase();
+                }, 1000);
+            }
+        }
+        
+        // Duman efekti
+        function createSmoke(element) {
+            const smoke = document.createElement('div');
+            smoke.className = 'smoke';
+            
+            element.style.position = 'relative';
+            element.appendChild(smoke);
+            
+            setTimeout(() => {
+                if (smoke.parentNode) {
+                    smoke.parentNode.removeChild(smoke);
+                }
+            }, 2000);
+        }
+        
+        // Final fazı
+        function startFinalPhase() {
+            gamePhase = 'final';
+            
+            // Pasta container'ını gizle
+            document.getElementById('cakeContainer').style.display = 'none';
+            
+            // Final mesajını göster
+            setTimeout(() => {
+                document.getElementById('finalMessage').classList.add('show');
+            }, 500);
+        }
+        
+        // Touch event'leri ekle
+        function addTouchEvents() {
+            let lastTouchTime = 0;
+            
+            // Document'a touch event'leri ekle
+            document.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                
+                if (gamePhase === 'shake') {
+                    let currentTime = Date.now();
+                    
+                    // Çok hızlı dokunuşları önle (debounce)
+                    if (currentTime - lastTouchTime > 300) {
+                        const touch = e.touches[0];
+                        onTouchSkip(touch.clientX, touch.clientY);
+                        lastTouchTime = currentTime;
+                    }
+                }
+            }, { passive: false });
+            
+            // Click event'i de ekle (desktop için)
+            document.addEventListener('click', (e) => {
+                if (gamePhase === 'shake') {
+                    let currentTime = Date.now();
+                    
+                    if (currentTime - lastTouchTime > 300) {
+                        onTouchSkip(e.clientX, e.clientY);
+                        lastTouchTime = currentTime;
+                    }
+                }
+            });
+        }
+        
+        // Başlangıç fonksiyonu
+        function startGame() {
+            // Müzik elementlerini al - COMMENT
+             melancholyMusic = document.getElementById('melancholyMusic');
+             birthdayMusic = document.getElementById('birthdayMusic');
+            
+            // Melankoli müziğini başlat (15 saniye) - COMMENT
+             melancholyMusic.currentTime = 0;
+             melancholyMusic.play().catch(console.error);
+            
+            // 15 saniye sonra müziği durdur - COMMENT
+             setTimeout(() => {
+                 melancholyMusic.pause();
+             }, 24000);
+            
+            // Sallama algılamayı başlat
+            startShakeDetection();
+            
+            // Touch event'leri ekle
+            addTouchEvents();
+            
+            // 5 saniye sonra sallama fazına geç
+            setTimeout(() => {
+                gamePhase = 'shake';
+            }, 12000);
+        }
+        
+        // Sayfa yüklendiğinde başlat
+        window.addEventListener('load', () => {
+            // Kullanıcı etkileşimi bekle (mobil tarayıcılar için)
+            document.addEventListener('click', startGame, { once: true });
+            document.addEventListener('touchstart', startGame, { once: true });
+            
+            // Eğer desktop'taysa otomatik başlat
+            setTimeout(() => {
+                if (gamePhase === 'intro') {
+                    startGame();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
