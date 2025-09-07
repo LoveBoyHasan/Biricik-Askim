@@ -524,7 +524,7 @@
             
             // Titreşim
             if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 400]);
+                navigator.vibrate(200);
             }
             
             // Müziği durdur - COMMENT
@@ -584,6 +584,7 @@
                 candle.className = 'candle';
                 candle.textContent = '🕯️';
                 candle.addEventListener('click', () => blowCandle(candle, i));
+                candle.addEventListener('touchstart', () => blowCandle(candle, i), { passive: true });
                 candlesContainer.appendChild(candle);
             }
         }
@@ -601,9 +602,12 @@
             
             // Tüm mumlar söndürüldü mü?
             if (candlesBlown >= totalCandles) {
+                if (navigator.vibrate) {
+                    navigator.vibrate(300); 
+                }
                 setTimeout(() => {
                     startFinalPhase();
-                }, 1000);
+                }, 1300);
             }
         }
         
